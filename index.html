@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RentIQ — Instant Rental Price Estimate</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0B2340;
+    --panel: #132C4D;
+    --grid: #1E4976;
+    --text: #EAF2FF;
+    --text-dim: #8FADD1;
+    --amber: #F2A93B;
+    --amber-dim: #B8802A;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 32px 32px;
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 20px;
+  }
+
+  .wrap {
+    width: 100%;
+    max-width: 960px;
+  }
+
+  .eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    color: var(--amber);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  h1 {
+    font-size: clamp(28px, 4vw, 42px);
+    font-weight: 700;
+    margin: 0 0 8px;
+    line-height: 1.1;
+  }
+
+  .sub {
+    color: var(--text-dim);
+    font-size: 15px;
+    margin-bottom: 40px;
+    max-width: 520px;
+  }
+
+  .grid-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+
+  @media (max-width: 760px) {
+    .grid-layout { grid-template-columns: 1fr; }
+  }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--grid);
+    border-radius: 4px;
+    padding: 28px;
+  }
+
+  .panel-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .field { margin-bottom: 18px; }
+
+  label {
+    display: block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--grid);
+    border-radius: 3px;
+    color: var(--text);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 16px;
+    padding: 10px 12px;
+    transition: border-color 0.15s ease;
+  }
+
+  input:focus {
+    outline: 2px solid var(--amber);
+    outline-offset: 1px;
+    border-color: var(--amber);
+  }
+
+  button {
+    width: 100%;
+    background: var(--amber);
+    color: #1a1200;
+    border: none;
+    border-radius: 3px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    padding: 13px;
+    cursor: pointer;
+    margin-top: 6px;
+    transition: background 0.15s ease;
+  }
+
+  button:hover { background: #ffc266; }
+  button:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+  button:disabled { background: var(--amber-dim); cursor: wait; }
+
+  /* Blueprint footprint visual */
+  .blueprint-stage {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 220px;
+    position: relative;
+    margin-bottom: 20px;
+  }
+
+  .footprint {
+    border: 1.5px dashed var(--amber);
+    border-radius: 2px;
+    position: relative;
+    transition: width 0.3s ease, height 0.3s ease;
+    background: rgba(242, 169, 59, 0.06);
+  }
+
+  .footprint::after {
+    content: attr(data-label);
+    position: absolute;
+    bottom: -24px;
+    left: 0;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.05em;
+  }
+
+  .result-stamp {
+    border-top: 1px dashed var(--grid);
+    padding-top: 20px;
+    margin-top: 4px;
+    text-align: center;
+    min-height: 90px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .result-price {
+    font-size: 40px;
+    font-weight: 700;
+    color: var(--amber);
+    line-height: 1;
+  }
+
+  .result-caption {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-top: 8px;
+  }
+
+  .error-msg {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: #ff8b8b;
+    text-align: center;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .footprint, button { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="eyebrow">Property Valuation Engine</div>
+  <h1>RentIQ</h1>
+  <p class="sub">Instant rental price estimates from a regression model trained on real listing data. Enter a property's specs to get a data-driven price benchmark.</p>
+
+  <div class="grid-layout">
+
+    <div class="panel">
+      <div class="panel-label">
+        <span>Spec Sheet</span>
+        <span>01</span>
+      </div>
+
+      <form id="predict-form">
+        <div class="field">
+          <label for="surface">Surface (m²)</label>
+          <input type="number" id="surface" min="1" step="1" value="80" required>
+        </div>
+        <div class="field">
+          <label for="pieces">Total rooms (pièces)</label>
+          <input type="number" id="pieces" min="0" step="1" value="3" required>
+        </div>
+        <div class="field">
+          <label for="bedrooms">Bedrooms</label>
+          <input type="number" id="bedrooms" min="0" step="1" value="2" required>
+        </div>
+        <div class="field">
+          <label for="bathrooms">Bathrooms</label>
+          <input type="number" id="bathrooms" min="0" step="1" value="1" required>
+        </div>
+        <button type="submit" id="submit-btn">Estimate price</button>
+      </form>
+    </div>
+
+    <div class="panel">
+      <div class="panel-label">
+        <span>Footprint Preview</span>
+        <span>02</span>
+      </div>
+
+      <div class="blueprint-stage">
+        <div class="footprint" id="footprint" data-label="80 m²"></div>
+      </div>
+
+      <div class="result-stamp" id="result-stamp">
+        <div class="result-caption">Enter specs and estimate to see a price</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // EDIT THIS after you deploy the FastAPI backend (Railway/Render URL)
+  const API_URL = "http://127.0.0.1:8000/predict";
+
+  const surfaceInput = document.getElementById('surface');
+  const footprint = document.getElementById('footprint');
+
+  function updateFootprint() {
+    const surface = parseFloat(surfaceInput.value) || 0;
+    // Map surface (roughly 20-250 m2) to a visual box size, capped for layout sanity
+    const side = Math.min(180, Math.max(40, Math.sqrt(surface) * 11));
+    footprint.style.width = side + 'px';
+    footprint.style.height = (side * 0.75) + 'px';
+    footprint.setAttribute('data-label', surface + ' m²');
+  }
+
+  surfaceInput.addEventListener('input', updateFootprint);
+  updateFootprint();
+
+  document.getElementById('predict-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const btn = document.getElementById('submit-btn');
+    const resultStamp = document.getElementById('result-stamp');
+
+    const payload = {
+      surface_m2: parseFloat(document.getElementById('surface').value),
+      pieces: parseFloat(document.getElementById('pieces').value),
+      bedrooms: parseFloat(document.getElementById('bedrooms').value),
+      bathrooms: parseFloat(document.getElementById('bathrooms').value),
+    };
+
+    btn.disabled = true;
+    btn.textContent = 'Calculating...';
+    resultStamp.innerHTML = '<div class="result-caption">Calculating...</div>';
+
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) throw new Error('Request failed');
+
+      const data = await response.json();
+      resultStamp.innerHTML = `
+        <div class="result-price">$${data.predicted_price.toLocaleString()}</div>
+        <div class="result-caption">Estimated monthly price</div>
+      `;
+    } catch (err) {
+      resultStamp.innerHTML = '<div class="error-msg">Could not reach the prediction API. Check that the backend is running and API_URL is set correctly.</div>';
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Estimate price';
+    }
+  });
+</script>
+
+</body>
+</html>
